@@ -2,7 +2,7 @@ import { Link } from "react-router-dom"
 import InputBox from "./InputBox"
 import Button from "./Button"
 import { useState } from "react"
-import type { SignupInput, SigninInput} from "@ayushgevariya/opendraft"
+import type { SignupInput} from "@ayushgevariya/opendraft"
 import axios from "axios"
 import { useNavigate } from "react-router-dom"
 
