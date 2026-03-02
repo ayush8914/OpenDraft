@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { decode, jwt, sign, verify } from 'hono/jwt'
 import { blogInput, blogUpdateInput, signupInput, signinInput } from '@ayushgevariya/opendraft';
-
+import {cors} from 'hono/cors'
 
 const app = new Hono<{
   Bindings: {
@@ -15,6 +15,8 @@ const app = new Hono<{
     userId : string | unknown
   }
 }>()
+
+app.use('/api/*', cors())
 
 app.use('/api/v1/blog/*', async (c, next) => {
   const token = c.req.header('Authorization')
