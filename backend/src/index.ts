@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { decode, jwt, sign, verify } from 'hono/jwt'
+import { blogInput, blogUpdateInput, signupInput, signinInput } from '@ayushgevariya/opendraft';
 
 
 const app = new Hono<{
@@ -45,7 +46,11 @@ app.post('/api/v1/signup',async (c)=>{
   }).$extends(withAccelerate())
 
   const body =await c.req.json();
-
+  const {success} = signupInput.safeParse(body)
+  if(!success){
+    c.status(403)
+    return c.json({error: 'Invalid input'})
+  }
   const user = await prisma.user.findUnique({
     where : {
       email: body.email
@@ -90,6 +95,11 @@ app.post('/api/v1/signin',async (c)=>{
   }).$extends(withAccelerate())
 
   const body =await c.req.json();
+  const {success} = signinInput.safeParse(body)
+  if(!success){
+    c.status(411)
+    return c.json({error: 'Invalid input'})
+  }
 
   const user = await prisma.user.findUnique({
     where : {
@@ -129,6 +139,11 @@ app.post('/api/v1/blog',async (c)=>{
   }).$extends(withAccelerate())
 
   const body =await c.req.json();
+  const {success} = blogInput.safeParse(body)
+  if(!success){
+    c.status(411)
+    return c.json({error: 'Invalid input'})
+  }
   //@ts-ignore
   const userId = Number(c.get('userId'));
   try{
@@ -174,6 +189,12 @@ app.put('/api/v1/blog',async (c)=>{
   }).$extends(withAccelerate())
 
   const body = await c.req.json();
+  const {success} = blogUpdateInput.safeParse(body)
+  if(!success){
+    c.status(411)
+    return c.json({error: 'Invalid input'})
+  }
+
   //@ts-ignore
   const userID = Number(c.get('userId'));
   const updateBlog = await prisma.post.update({
