@@ -34,7 +34,7 @@ function Auth (props : {type : "signin" | "signup"}) {
                          email: "",
                          password: ""
                      })
-                     navigate("/")
+                     navigate("/blogs")
                  }
                  else{
                      setError(response.data.error)
@@ -53,7 +53,7 @@ function Auth (props : {type : "signin" | "signup"}) {
                          email: "",
                          password: ""
                      })
-                    navigate("/")
+                    navigate("/blogs")
                 }
                 else{
                     setError(response.data.error)
