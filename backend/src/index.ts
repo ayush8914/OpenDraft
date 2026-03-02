@@ -4,7 +4,16 @@ import { withAccelerate } from "@prisma/extension-accelerate";
 import { decode, jwt, sign, verify } from 'hono/jwt'
 
 
-const app = new Hono()
+const app = new Hono<{
+  Bindings: {
+    DATABASE_URL: string
+    JWT_SECRET: string
+    ACC_PRISMA_URL: string
+  },
+  Variables: {
+    userId : string | unknown
+  }
+}>()
 
 app.use('/api/v1/blog/*', async (c, next) => {
   const token = c.req.header('Authorization')
@@ -14,7 +23,6 @@ app.use('/api/v1/blog/*', async (c, next) => {
     return c.json({error: 'Unauthorized'})
   }
 
-  //@ts-ignore
   const response = await verify(token.split('Bearer ')[1],c.env.JWT_SECRET,'HS256')
 
   if(!response){
@@ -22,19 +30,17 @@ app.use('/api/v1/blog/*', async (c, next) => {
     return c.json({error: 'Unauthorized'})
   }
 
-  c.set('jwtPayload',{userId : response.id})
+  c.set('userId',Number(response.id))
   return next()
 })
 
-app.get("/",(c) => { 
-  
+app.get("/",(c) =>{ 
   return c.text('hello')
 });
 
 app.post('/api/v1/signup',async (c)=>{
 
   const prisma = new PrismaClient({
-    //@ts-ignore
     datasourceUrl: c.env.ACC_PRISMA_URL,
   }).$extends(withAccelerate())
 
@@ -50,31 +56,36 @@ app.post('/api/v1/signup',async (c)=>{
     c.status(403)
     return c.json({error: 'User already exists with this email'})
   }
- const createUser = await prisma.user.create({
-    data: {
-      email: body.email,
-      name: body.name,
-      password: body.password
-    },
-    select : {
-      id: true
-    }
-  })
 
-  //@ts-ignore
-  const token = await sign({id:createUser.id},c.env.JWT_SECRET)
+  try{
 
-  c.status(200)
-  return c.json({
-    msg : "Signup successful",
-    token
-  })
+    const createUser = await prisma.user.create({
+      data: {
+        email: body.email,
+        name: body.name,
+        password: body.password
+      },
+      select : {
+        id: true
+      }
+    })
+    
+    const token = await sign({id:createUser.id},c.env.JWT_SECRET)
+    
+    c.status(200)
+    return c.json({
+      msg : "Signup successful",
+      token
+    })
+  }catch(e){
+    c.status(403)
+    return c.json({error: 'User not created'})
+  }
 })
 
 app.post('/api/v1/signin',async (c)=>{
 
   const prisma = new PrismaClient({
-    //@ts-ignore
     datasourceUrl: c.env.ACC_PRISMA_URL,
   }).$extends(withAccelerate())
 
@@ -101,7 +112,6 @@ app.post('/api/v1/signin',async (c)=>{
     })
   }
 
-  //@ts-ignore
   const token = await sign({id:user.id},c.env.JWT_SECRET)
 
   c.status(200)
@@ -115,18 +125,18 @@ app.post('/api/v1/signin',async (c)=>{
 app.post('/api/v1/blog',async (c)=>{
   
      const prisma = new PrismaClient({
-    //@ts-ignore
     datasourceUrl: c.env.ACC_PRISMA_URL,
   }).$extends(withAccelerate())
 
   const body =await c.req.json();
   //@ts-ignore
-  const userId = c.get('jwtPayload').userId;
-  console.log(userId);
-  const createBlog = await prisma.post.create({
-    data: {
-      title: body.title,
-      content: body.content,
+  const userId = Number(c.get('userId'));
+  try{
+
+    const createBlog = await prisma.post.create({
+      data: {
+        title: body.title,
+        content: body.content,
       published: body.published,
       authorId: userId
     },
@@ -141,12 +151,18 @@ app.post('/api/v1/blog',async (c)=>{
       error: 'Blog not created'
     })
   }
-
+  
   c.status(200)
   return c.json({
     msg : "Blog created successfully",
     blog : createBlog
   })
+}catch(e){
+  c.status(403)
+  return c.json({
+    error: 'Blog not created'
+  })
+}
 
 })
 
@@ -154,13 +170,12 @@ app.post('/api/v1/blog',async (c)=>{
 app.put('/api/v1/blog',async (c)=>{
 
   const prisma = new PrismaClient({
-    //@ts-ignore
     datasourceUrl: c.env.ACC_PRISMA_URL,
   }).$extends(withAccelerate())
 
   const body = await c.req.json();
   //@ts-ignore
-  const userID = c.get('jwtPayload').userId;
+  const userID = Number(c.get('userId'));
   const updateBlog = await prisma.post.update({
     where : {
       id : body.id,
@@ -187,10 +202,48 @@ app.put('/api/v1/blog',async (c)=>{
   })
 })
 
+
+app.get('/api/v1/blog/bulk',async(c)=>{
+    const prisma = new PrismaClient({
+      datasourceUrl: c.env.ACC_PRISMA_URL,
+    }).$extends(withAccelerate())
+    
+    const blogs = await prisma.post.findMany({})
+
+    c.status(200)
+    return c.json({
+      msg : "Blogs found successfully",
+      blogs
+    })
+
+})
+
+app.get('/api/v1/blog/userBlog',async (c)=>{
+
+  const prisma = new PrismaClient({
+    datasourceUrl: c.env.ACC_PRISMA_URL,
+  }).$extends(withAccelerate())
+  
+  //@ts-ignore
+  const userID = Number(c.get('userId'));
+
+  const blog = await prisma.post.findMany({
+    where : {
+      authorId : userID
+    }
+  })
+
+  c.status(200)
+  return c.json({
+    msg : "Blogs found successfully",
+    blog
+  })
+})
+
+
 app.get('/api/v1/blog/:id',async (c)=>{
 
   const prisma = new PrismaClient({
-    //@ts-ignore
     datasourceUrl: c.env.ACC_PRISMA_URL,
   }).$extends(withAccelerate())
 
