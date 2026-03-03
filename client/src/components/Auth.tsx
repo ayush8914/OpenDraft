@@ -74,7 +74,7 @@ function Auth (props : {type : "signin" | "signup"}) {
                         {error && <div className="text-red-600 bg-red-100 px-4 py-6 rounded mt-2  mb-5 w-3/4 sm:w-1/2 text-center">{error}</div>}
                 </div>
             <div className="flex justify-center">
-                <div className="flex flex-col gap-1 text-center w-3/4 sm:w-1/2 border border-gray-200 p-8 pt-12 pb-12 rounded-xl">
+                <div className="flex flex-col gap-1 text-center w-7/8 sm:w-1/2 border border-gray-200 p-3 sm:p-5 sm:pt-14 sm:pb-12 rounded-xl">
                     <div className="font-bold text-3xl mb-1">
                         {props.type === "signin" ? "Sign In" : "Create an account"}
                     </div>
