@@ -41,7 +41,7 @@ function Blogs() {
       <div>
         <AppBar isLoggedIn={localStorage.getItem("token") !== null} />
     
-        <div className="flex justify-center items-center">
+        <div className="flex justify-center items-center p-4">
             {isLoading &&  
                 <div className="text-center w-full">
                   <div
@@ -54,7 +54,7 @@ function Blogs() {
             }
             {!isLoading && <div className="w-full sm:w-6/8  h-screen   flex flex-col gap-14 p-6">
                 {blogs.map((blog : any) => {
-                    return <BlogCard key={blog.id} authorName={"authorName"} title={blog.title} content={blog.content} publishedDate={blog.publishedDate} />
+                    return <BlogCard key={blog.id} authorName={blog.author.name} title={blog.title} content={blog.content} publishedDate={blog.publishedDate} />
                 })}
             </div>
             }

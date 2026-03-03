@@ -101,7 +101,7 @@ function Auth (props : {type : "signin" | "signup"}) {
                             ...formData,
                             password : e.target.value
                         })} />
-                        <Button text={props.type === "signin" ? "Login" : "Sign Up"} onClick={handleSubmit} isLoading={isLoading} loadingLabel={props.type === "signin" ? "Signing you in..." : "Setting up your account..." } />
+                        <Button text={props.type === "signin" ? "Login" : "Sign Up"} onClick={handleSubmit} isLoading={isLoading}  loadingLabel={props.type === "signin" ? "Signing you in..." : "Setting up your account..." } />
                 </div>
             </div>
     </div>
