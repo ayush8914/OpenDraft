@@ -231,7 +231,24 @@ app.get('/api/v1/blog/bulk',async(c)=>{
       datasourceUrl: c.env.ACC_PRISMA_URL,
     }).$extends(withAccelerate())
     
-    const blogs = await prisma.post.findMany({})
+    const blogs = await prisma.post.findMany({
+      select : {
+        id : true,
+        title : true,
+        content : true,
+        published : true,
+        authorId : true,
+        publishedDate : true,
+        author : true
+      }
+    })
+
+    if(!blogs){
+      c.status(403)
+      return c.json({
+        error: 'Blogs not found'
+      })
+    }
 
     c.status(200)
     return c.json({
